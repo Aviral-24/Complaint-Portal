@@ -100,20 +100,22 @@ func main() {
 		name = "complaint_db"
 	}
 
-	cfg := mysql.Config{
+cfg := mysql.Config{
 		User:   user,
 		Passwd: password,
 		Net:    "tcp",
 		Addr:   net.JoinHostPort(host, port),
 		DBName: name,
+		TLSConfig: "skip-verify",
 	}
+
 	if err := store.InitDB(cfg.FormatDSN()); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
 	ensureSchema()
 
-	// Create Default Admin if it doesn't exist, and always show the current one
+	// Create Default Admin if it doesn't exist
 	var adminSecret string
 	err := store.DB.QueryRow("SELECT secret_code FROM users WHERE email = ? AND is_admin = true LIMIT 1", "admin@example.com").Scan(&adminSecret)
 	if err != nil {
