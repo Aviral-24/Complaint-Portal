@@ -11,7 +11,7 @@ export default function SubmitComplaint({ user }) {
     setMsg("");
 
     try {
-      const res = await fetch("http://localhost:8080/submitComplaint", {
+      const res = await fetch("https://complaint-portal-tuyt.onrender.com/submitComplaint", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

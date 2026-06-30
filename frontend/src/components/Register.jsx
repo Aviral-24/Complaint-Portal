@@ -13,7 +13,7 @@ export default function Register() {
     const body = { name, email, is_admin: masterKey ? true : false };
 
     try {
-      const res = await fetch("http://localhost:8080/register", {
+      const res = await fetch("https://complaint-portal-tuyt.onrender.com/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

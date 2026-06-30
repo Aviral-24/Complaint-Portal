@@ -8,6 +8,9 @@ import (
 )
 
 func SetupRoutes() {
+	
+	http.HandleFunc("/", middleware.WithCORS(handlers.WelcomeHandler))
+	
 	http.HandleFunc("/register", middleware.WithCORS(handlers.RegisterHandler))
 	http.HandleFunc("/login", middleware.WithCORS(handlers.LoginHandler))
 	http.HandleFunc("/submitComplaint", middleware.WithCORS(handlers.SubmitComplaintHandler))

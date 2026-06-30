@@ -17,7 +17,7 @@ export default function ViewComplaint({ user }) {
 
     try {
       const url =
-        "http://localhost:8080/viewComplaint?id=" +
+        "https://complaint-portal-tuyt.onrender.com/viewComplaint?id=" +
         encodeURIComponent(id.trim());
 
       const res = await fetch(url, {

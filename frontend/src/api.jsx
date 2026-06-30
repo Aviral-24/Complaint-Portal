@@ -1,4 +1,4 @@
- const BASE = "http://localhost:8080";
+ const BASE = "https://complaint-portal-tuyt.onrender.com";
 
 async function apiPost(path, body, secret) {
   const headers = { "Content-Type": "application/json" };

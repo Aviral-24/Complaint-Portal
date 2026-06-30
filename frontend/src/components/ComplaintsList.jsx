@@ -10,7 +10,7 @@ export default function ComplaintsList({ user }) {
   async function load() {
     setErr("");
     try {
-      const res = await fetch("http://localhost:8080/getAllComplaintsForUser", {
+      const res = await fetch("https://complaint-portal-tuyt.onrender.com/getAllComplaintsForUser", {
         headers: { "X-Secret-Code": user.secret_code }
       });
       const data = await res.json();

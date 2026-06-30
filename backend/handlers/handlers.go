@@ -7,9 +7,24 @@ import (
 	"backend/utils"
 )
 
+
+func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
+	
+	if r.URL.Path != "/" {
+		utils.WriteJSON(w, http.StatusNotFound, map[string]string{"error": "404 page not found"})
+		return
+	}
+	
+	
+	utils.WriteJSON(w, http.StatusOK, map[string]string{
+		"status":  "success",
+		"message": "Complaint Portal Backend is running perfectly! 🚀",
+	})
+}
+
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.WriteJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "only POST allowed"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "only POST allowed"}) 
 		return
 	}
 
@@ -19,22 +34,22 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		IsAdmin bool   `json:"is_admin,omitempty"`
 	}
 	if err := utils.ReadJSONBody(r, &req); err != nil {
-		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()}) 
 		return
 	}
 	if req.Name == "" || req.Email == "" {
-		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "name and email required"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "name and email required"}) 
 		return
 	}
 
-	uid, _ := utils.GenRandomHex(8)     //[cite: 5]
-	secret, _ := utils.GenRandomHex(16) //[cite: 5]
+	uid, _ := utils.GenRandomHex(8)     
+	secret, _ := utils.GenRandomHex(16) 
 	isAdmin := false
 	if req.IsAdmin {
-		if r.Header.Get("X-Master-Key") == store.MASTER_ADMIN_KEY { //[cite: 5]
+		if r.Header.Get("X-Master-Key") == store.MASTER_ADMIN_KEY { 
 			isAdmin = true
 		} else {
-			utils.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "invalid master key"}) //[cite: 5]
+			utils.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "invalid master key"}) 
 			return
 		}
 	}
@@ -50,11 +65,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		SecretCode: secret,
 		Name:       req.Name,
 		Email:      req.Email,
-		Complaints: []string{}, //[cite: 5]
+		Complaints: []string{}, 
 		IsAdmin:    isAdmin,
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, user) //[cite: 5]
+	utils.WriteJSON(w, http.StatusCreated, user) 
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,22 +77,22 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Secret string `json:"secret_code"`
 	}
 	if err := utils.ReadJSONBody(r, &req); err != nil {
-		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()}) 
 		return
 	}
 	user, err := store.GetUserBySecret(req.Secret)
 	if err != nil {
-		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid secret code"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid secret code"}) 
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, user) //[cite: 5]
+	utils.WriteJSON(w, http.StatusOK, user) 
 }
 
 func SubmitComplaintHandler(w http.ResponseWriter, r *http.Request) {
-	secret := r.Header.Get("X-Secret-Code") //[cite: 5]
+	secret := r.Header.Get("X-Secret-Code") 
 	user, err := store.GetUserBySecret(secret)
 	if err != nil {
-		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid secret code"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid secret code"}) 
 		return
 	}
 
@@ -87,11 +102,11 @@ func SubmitComplaintHandler(w http.ResponseWriter, r *http.Request) {
 		Severity int    `json:"severity"`
 	}
 	if err := utils.ReadJSONBody(r, &req); err != nil {
-		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()}) 
 		return
 	}
 
-	cid, _ := utils.GenRandomHex(8) //[cite: 5]
+	cid, _ := utils.GenRandomHex(8) 
 	_, err = store.DB.Exec("INSERT INTO complaints (id, title, summary, severity, resolved, user_id) VALUES (?, ?, ?, ?, ?, ?)", cid, req.Title, req.Summary, req.Severity, false, user.ID)
 
 	if err != nil {
@@ -105,27 +120,27 @@ func SubmitComplaintHandler(w http.ResponseWriter, r *http.Request) {
 		Summary:  req.Summary,
 		Severity: req.Severity,
 		UserID:   user.ID,
-		Resolved: false, //[cite: 5]
+		Resolved: false, 
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, c) //[cite: 5]
+	utils.WriteJSON(w, http.StatusCreated, c) 
 }
 
 func GetAllForUserHandler(w http.ResponseWriter, r *http.Request) {
-	secret := r.Header.Get("X-Secret-Code") //[cite: 5]
+	secret := r.Header.Get("X-Secret-Code") 
 	user, err := store.GetUserBySecret(secret)
 	if err != nil {
-		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid secret code"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid secret code"}) 
 		return
 	}
 
 	type Brief struct {
 		ID    string `json:"id"`
 		Title string `json:"title"`
-	} //[cite: 5]
+	} 
 
 	rows, err := store.DB.Query("SELECT id, title FROM complaints WHERE user_id = ?", user.ID)
-	out := []Brief{} //[cite: 5]
+	out := []Brief{} 
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
@@ -134,14 +149,14 @@ func GetAllForUserHandler(w http.ResponseWriter, r *http.Request) {
 			out = append(out, b)
 		}
 	}
-	utils.WriteJSON(w, http.StatusOK, out) //[cite: 5]
+	utils.WriteJSON(w, http.StatusOK, out) 
 }
 
 func GetAllForAdminHandler(w http.ResponseWriter, r *http.Request) {
-	secret := r.Header.Get("X-Secret-Code") //[cite: 5]
+	secret := r.Header.Get("X-Secret-Code") 
 	admin, err := store.GetUserBySecret(secret)
 	if err != nil || !admin.IsAdmin {
-		utils.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "admin only"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "admin only"}) 
 		return
 	}
 
@@ -150,10 +165,10 @@ func GetAllForAdminHandler(w http.ResponseWriter, r *http.Request) {
 		Title    string `json:"title"`
 		UserName string `json:"user_name"`
 		Resolved bool   `json:"resolved"`
-	} //[cite: 5]
+	} 
 
 	rows, err := store.DB.Query("SELECT c.id, c.title, u.name, c.resolved FROM complaints c JOIN users u ON c.user_id = u.id")
-	out := []Entry{} //[cite: 5]
+	out := []Entry{} 
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
@@ -162,38 +177,38 @@ func GetAllForAdminHandler(w http.ResponseWriter, r *http.Request) {
 			out = append(out, e)
 		}
 	}
-	utils.WriteJSON(w, http.StatusOK, out) //[cite: 5]
+	utils.WriteJSON(w, http.StatusOK, out) 
 }
 
 func ViewComplaintHandler(w http.ResponseWriter, r *http.Request) {
-	secret := r.Header.Get("X-Secret-Code") //[cite: 5]
+	secret := r.Header.Get("X-Secret-Code") 
 	user, err := store.GetUserBySecret(secret)
 	if err != nil {
-		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid secret code"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid secret code"}) 
 		return
 	}
 
-	id := r.URL.Query().Get("id") //[cite: 5]
+	id := r.URL.Query().Get("id") 
 	c := &store.Complaint{}
 
 	err = store.DB.QueryRow("SELECT id, title, summary, severity, resolved, user_id FROM complaints WHERE id = ?", id).Scan(&c.ID, &c.Title, &c.Summary, &c.Severity, &c.Resolved, &c.UserID)
 	if err != nil {
-		utils.WriteJSON(w, http.StatusNotFound, map[string]string{"error": "complaint not found"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusNotFound, map[string]string{"error": "complaint not found"}) 
 		return
 	}
 
-	if user.IsAdmin || c.UserID == user.ID { //[cite: 5]
-		utils.WriteJSON(w, http.StatusOK, c) //[cite: 5]
+	if user.IsAdmin || c.UserID == user.ID { 
+		utils.WriteJSON(w, http.StatusOK, c) 
 		return
 	}
-	utils.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "not authorized"}) //[cite: 5]
+	utils.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "not authorized"}) 
 }
 
 func ResolveComplaintHandler(w http.ResponseWriter, r *http.Request) {
-	secret := r.Header.Get("X-Secret-Code") //[cite: 5]
+	secret := r.Header.Get("X-Secret-Code") 
 	admin, err := store.GetUserBySecret(secret)
 	if err != nil || !admin.IsAdmin {
-		utils.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "admin only"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "admin only"}) 
 		return
 	}
 
@@ -201,14 +216,14 @@ func ResolveComplaintHandler(w http.ResponseWriter, r *http.Request) {
 		ID string `json:"id"`
 	}
 	if err := utils.ReadJSONBody(r, &req); err != nil {
-		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()}) 
 		return
 	}
 
 	_, err = store.DB.Exec("UPDATE complaints SET resolved = true WHERE id = ?", req.ID)
 	if err != nil {
-		utils.WriteJSON(w, http.StatusNotFound, map[string]string{"error": "complaint not found"}) //[cite: 5]
+		utils.WriteJSON(w, http.StatusNotFound, map[string]string{"error": "complaint not found"}) 
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "resolved", "id": req.ID}) //[cite: 5]
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "resolved", "id": req.ID}) 
 }

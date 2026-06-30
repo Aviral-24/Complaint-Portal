@@ -7,7 +7,7 @@ export default function AdminComplaints({ user }) {
   async function load() {
     setMsg("");
     try {
-      const res = await fetch("http://localhost:8080/getAllComplaintsForAdmin", {
+      const res = await fetch("https://complaint-portal-tuyt.onrender.com/getAllComplaintsForAdmin", {
         headers: { "X-Secret-Code": user.secret_code }
       });
       const data = await res.json();
