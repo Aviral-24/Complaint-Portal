@@ -1,0 +1,20 @@
+CREATE DATABASE IF NOT EXISTS complaint_db;
+USE complaint_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(16) PRIMARY KEY,
+    secret_code VARCHAR(32) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS complaints (
+    id VARCHAR(16) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    summary TEXT NOT NULL,
+    severity INT NOT NULL,
+    resolved BOOLEAN DEFAULT FALSE,
+    user_id VARCHAR(16) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
